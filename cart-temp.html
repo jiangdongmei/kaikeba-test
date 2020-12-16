@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Hello Vue</title>
+        <style>
+            .active {
+                background-color: aquamarine;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            
+        </div>
+    </body>
+    <script src="vue.js"></script>    
+    <script>
+        
+        let app = new Vue({
+            el: "#app",
+            data() {
+                return {
+                    title: "开课吧购物车",
+                    courses: [],
+                    newCourse: "",
+                    selectedCourse: ""
+                }
+            },
+            methods: {
+                addCourse() {
+                    // 添加course到courses，清空输入框的内容
+                    this.courses.push(this.newCourse);
+                    this.newCourse = "";
+                },
+                // deleteCourse(i) {
+                //     this.courses.splice()
+                // }
+            },
+            render(){
+                with(this){
+                    return _c('div',{attrs:{"id":"app"}},[_c('h1',[_v(_s(title))]),_v(" "),(courses.length === 0)?_c('p',[_v("没有任何课程")]):_c('div',[_c('ul',[_l((courses),function(item){return _c('li',{key:item,class:{active: selectedCourse === item},staticStyle:{"display":"inline"},on:{"click":function($event){selectedCourse = item;}}},[_v("\n                        "+_s(item)+"\n                    ")])}),_v(" "),_c('button',{on:{"click":function($event){return deleteCourse(index)}}},[_v("删除")])],2)]),_v(" "),_c('input',{directives:[{name:"model",rawName:"v-model",value:(newCourse),expression:"newCourse"}],attrs:{"type":"text"},domProps:{"value":(newCourse)},on:{"keydown":function($event){if(!$event.type.indexOf('key')&&_k($event.keyCode,"enter",13,$event.key,"Enter"))return null;return addCourse($event)},"input":function($event){if($event.target.composing)return;newCourse=$event.target.value}}}),_v(_s(newCourse)+"\n            "),_c('button',{on:{"click":addCourse}},[_v("新增")])])
+                }
+
+            }
+        });
+        console.log(app.$options.render);
+    </script>
+</html>

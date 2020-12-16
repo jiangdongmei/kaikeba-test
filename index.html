@@ -2,7 +2,26 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Hello World</title>
+        <title>Hello Vue</title>
     </head>
-    <body>Hello World</body>
+    <body>
+        <div id="app">
+            <p :title="title">hahaha</p>
+        </div>
+    </body>
+    <script src="vue.js"></script>    
+    <script>
+        
+        let app = new Vue({
+            el: "#app",
+            data() {
+                return {
+                    title: "Hello Vue"
+                }
+            }
+        });
+        setTimeout(() => {
+            app.title = "Hello World";
+        }, 1000);
+    </script>
 </html>
