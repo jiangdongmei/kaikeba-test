@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Hello Vue</title>
+        <link href="animate.min.css" rel="stylesheet"></link>
+        <style>
+            .active {
+                background-color: aquamarine;
+            }
+            .message {
+                padding: 10px 20px;
+            }
+            .success{
+                background-color: aquamarine;
+                border: solid 1px #42b983;
+            }
+            .warning{
+                background-color:burlywood;
+                border: solid 1px burlywood;
+            }
+            .message-box-close{
+                float: right;
+                right: 0px;
+            }
+            .fade-enter, .fade-leave-to{
+                opacity: 0;
+            }
+            .fade-enter-active, .fade-leave-active{
+                transition: opacity 1s;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app">
+            <!-- <message :show.sync="isShow" class="success" -->
+            <message ref="msgSuccess" class="success">
+                <!-- 具名插槽，给插槽取名字 在组件中使用name对应插槽-->
+                <template v-slot:title  ><strong>恭喜</strong></template>
+                <!-- 默认插槽 默认为default -->
+                <template v-slot>新增课程成功</template>
+            </message>
+            <!-- <message :show.sync="showWarn" class="warning" -->
+            <message class="warning" ref="msgWarning">
+                <!-- 具名插槽，给插槽取名字 在组件中使用name对应插槽-->
+                <template v-slot:title  ><strong>警告</strong></template>
+                <!-- 默认插槽 默认为default -->
+                <template v-slot>新增课程不能为空</template>
+            </message>
+            <h1>{{title}}</h1>
+            <!-- 列表组件 -->
+            <course-list :courses="courses"></course-list>
+
+            <!-- 输入组件 -->
+            <!-- <course-add @add-course="addCourse"></course-add> -->
+            <!-- 自定义组件实现双向绑定  -->
+            <course-add @add-course="addCourse" v-model="newCourse"></course-add>
+            <!-- 清空message -->
+            <p><button @click="$bus.$emit('message-close')">清空message</button></p>
+            <!-- 当前课程总数 -->
+            <p>{{totalCourses + '门'}}</p>
+            
+            
+            
+        </div>
+    </body>
+    <script src="vue.js"></script>    
+    <script>
+        Vue.prototype.$bus = new Vue();
+        Vue.directive('focus', {
+            inserted(el) {
+                el.focus();
+            }
+        })
+        function getCourses() {
+            return new Promise(resolve => {
+                setTimeout(function() {
+                    resolve(['web高级', 'web全栈']);
+                }, 2000)
+            });
+        }
+        Vue.component('message', {
+            // props: ['show'],
+            data() {
+                return {
+                    show: false
+                }
+            },
+            template: ` 
+            <!-- <transition name="fade"> -->
+            <transition enter-active-class="animated bounceIn"
+                        leave-active-class="animated bounceOut">
+                <div class="message" v-if="show">
+                    <!-- 如果名为title的插槽没有内容，则默认显示插槽中的内容，如果有值，则显示上方的内容 -->
+                    <slot name="title">默认名称</slot>
+                    <!-- 占位，占位类容为新增课程成功 -->
+                    <slot></slot>
+                    <span class="message-box-close" @click="toggle">X</span>
+                </div>
+            </transition>`,
+            // 挂载实例
+            mounted () {
+                this.$bus.$on('message-close', ()=> {
+                    // 此处必须用箭头函数的方式，代表的是当前组件的实例，如果使用匿名函数，this表示匿名函数的指向，而不是当前组件实例
+                   this.toggle();  
+                });
+            },
+            methods: {
+                toggle() {
+                    this.show = !this.show;
+                }
+            },
+        });
+        // 自定义输入组件 
+        /*Vue.component('course-add',{
+            data() {
+                return {
+                    newCourse: ''
+                }
+            },
+            template: `
+                <div>
+                    <!-- 用户输入 -->
+                    <input type="text" v-model="newCourse" v-on:keydown.enter="addCourse"><button @click="addCourse">新增</button>
+                </div>
+            `,
+            methods: {
+                addCourse() {
+                    //该操作影响的是父组件的数据，所以通知父组件执行此事件方法
+                    this.$emit('add-course', this.newCourse);
+                    this.newCourse = "";
+                }
+            },
+        })*/
+        // 与父组件实现双向绑定
+        Vue.component('course-add',{
+            props: ['value'],
+            template: `
+                <div>
+                    <!-- 用户输入 -->
+                    <input type="text" v-focus :value="value" v-on:keydown.enter="addCourse" @input="onInput"><button @click="addCourse">新增</button>
+                </div>
+            `,
+            methods: {
+                addCourse() {
+                    //该操作影响的是父组件的数据，所以通知父组件执行此事件方法
+                    this.$emit('add-course');
+                },
+                onInput(e) {
+                    this.$emit('input', e.target.value)
+                }
+            },
+        })
+        // 自定义列表组件
+        Vue.component('course-list', {
+            data() {
+                return {
+                    selectedCourse: '' // selectedCourse只在courses列表中使用了，所以可以作于当前组件的独立数据
+                }
+            },
+            //可以是数组，也可以是对象
+            props: {
+                courses: {
+                    type: Array, //是数据类型
+                    default: [] //初始值
+                },
+
+            },
+            template:
+                `<div>
+                    <!-- 条件渲染 -->
+                    <p v-if="courses.length === 0">没有任何课程</p>
+                    <div v-else>
+                        <ul>
+                            <!-- class -->
+                            <li  v-for="item in courses" :key="item" :class="{active: selectedCourse === item}" 
+                                @click="selectedCourse = item;">
+                                {{ item }}
+                            </li>
+                            <!-- style -->
+                            <!-- <li  v-for="item in courses" :key="item" :style="{backgroundColor: selectedCourse === item ? 'aquamarine': 'transparent'}" @click="selectedCourse = item;">
+                                {{ item }}
+                            </li> -->
+                            <button @click="deleteCourse(index)" >删除</button>
+                        </ul>
+                    </div>
+                </div>`
+                
+        })
+        let app = new Vue({
+            el: "#app",
+            data() {
+                return {
+                    title: "开课吧购物车",
+                    courses: [],
+                    newCourse: "",
+                    totalCourses: 0,
+                    isShow: false,
+                    showWarn: false
+                }
+            },
+            // 创建实例
+            async created () {
+                //组件实例已经创建，由于未挂载，dom不存在
+                const courses = await getCourses(); // await只能在async中使用
+                this.courses = courses;
+            },
+            
+            // 生命周期钩子函数使用场景
+            /*
+            beforeCreate(){} 执行时组件实例还未创建，通常用于组件开发中执行一些初始化任务
+            created(){} 组件初始化完毕，各种数据可以使用，常用于异步数据获取
+            beforedMounted(){} 未执行渲染更新，dom未创建
+            mounted(){} dom已创建，用于获取访问数据和dom元素
+            beforeUpdate(){} 更新前，可用于获取各种数据更新前状态
+            updated(){} 更新完成，所有状态已是最新
+            beforeDestory(){} 销毁前，可用于一些定时器或订阅的取消
+            destoryed(){} 组件已销户，作用同上
+            */
+            methods: {
+                // 此course参数是子组件传递过来的值
+                
+                addCourse() {
+                    // 添加course到courses，清空输入框的内容
+                    if(this.newCourse) {
+                        this.courses.push(this.newCourse);
+                        // this.isShow = true;
+                        this.$refs.msgSuccess.toggle();
+                        this.newCourse = "";
+                    } else {
+                        // this.showWarn = true;
+                        this.$refs.msgWarning.toggle();
+
+                    }
+                    
+                },
+                // deleteCourse(i) {
+                //     this.courses.splice()
+                // }
+            },
+            // 计算属性以及监听器
+            // computed: {
+            //     totalCourses() {
+            //         console.log(this.courses)
+            //         return this.courses.length;
+            //     }
+            // },
+            // 监听器，默认情况下不执行，只有发生改变才会执行
+            // watch: {
+            //     courses(newV, oldV) {
+            //         console.log(newV)
+            //         this.totalCourses = newV.length;
+            //     }
+            // }
+            // 立即执行的watch
+            watch: {
+                courses: {
+                    immediate: true,  // 立即执行
+                    deep: true,  //数据层次深时变化执行
+                    handler(newValue, oldValue) {
+                        this.totalCourses = newValue.length;
+                    }
+                }
+            },
+        });
+    </script>
+</html>
