@@ -23,7 +23,6 @@
         },
         // 挂载实例
         mounted () {
-            console.log(this.show)
             this.$bus.$on('message-close', ()=> {
                 // 此处必须用箭头函数的方式，代表的是当前组件的实例，如果使用匿名函数，this表示匿名函数的指向，而不是当前组件实例
                 this.toggle();  

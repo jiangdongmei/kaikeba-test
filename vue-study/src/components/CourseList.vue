@@ -6,8 +6,9 @@
             <ul>
                 <!-- class -->
                 <li  v-for="item in courses" :key="item" :class="{active: selectedCourse === item}" 
-                    @click="selectedCourse = item;">
-                    {{ item }}
+                    @click="onClick(item)">
+                    <!-- <router-link :to="`/admin/course/${item}`">{{ item }}</router-link> -->
+                    {{item}}
                 </li>
                 <!-- style -->
                 <!-- <li  v-for="item in courses" :key="item" :style="{backgroundColor: selectedCourse === item ? 'aquamarine': 'transparent'}" @click="selectedCourse = item;">
@@ -28,12 +29,25 @@
                 default: function() {
                     return [];
                 }
-            },
-
+            }
         },
         data() {
             return {
                 selectedCourse: '' // selectedCourse只在courses列表中使用了，所以可以作于当前组件的独立数据
+            }
+        },
+        methods: {
+            onClick(courseName) {
+                this.selectedCourse = courseName;
+                // 1. 直接push path 
+                this.$router.push('/admin/course/' + courseName);
+                // 2. 使用name的方式, 定义路由时候的name，这样不容易出错
+                this.$router.push({
+                    name: 'detail',
+                    params: {
+                        name: courseName
+                    }
+                });
             }
         },
     }
