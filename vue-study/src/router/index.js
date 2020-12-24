@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import store from '../store'
 
 Vue.use(VueRouter)
 
@@ -72,5 +73,28 @@ const router = new VueRouter({
 //       next();
 //     }
 // }); 
-
+router.beforeEach((to, form, next) => {
+  // 改成所有路由都需要首位
+  //判断登录状态
+  console.log(store)
+  if (store.state.isLogin) {
+    // 如果是登录界面，则取首页，否则放行
+    if(to.path === '/login') {
+      next('/');
+    } else {
+      next();
+    }
+   
+  } else {
+    if(to.path === '/login') {
+      next();
+    } else {
+      router.push('/login?redirect=' + to.fullPath);
+    }
+  }
+}); 
+const VueRouterPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push (to) {
+  return VueRouterPush.call(this, to).catch(err => err)
+}
 export default router
